@@ -3,7 +3,7 @@ using Runtime.Enums;
 using Runtime.Signals;
 using UnityEngine;
 
-namespace Runtime.Controllers
+namespace Runtime.Controllers.UI
 {
     public class UIPanelController: MonoBehaviour
     {
@@ -24,7 +24,6 @@ namespace Runtime.Controllers
         {
             CoreUISignals.Instance.onClosePanel += OnClosePanel;
             CoreUISignals.Instance.onOpenPanel += OnOpenPanel;
-            CoreUISignals.Instance.onCloseAllPanels += OnCloseAllPanels;
         }
 
         private void OnDisable()
@@ -36,23 +35,8 @@ namespace Runtime.Controllers
         {
             CoreUISignals.Instance.onClosePanel -= OnClosePanel;
             CoreUISignals.Instance.onOpenPanel -= OnOpenPanel;
-            CoreUISignals.Instance.onCloseAllPanels -= OnCloseAllPanels;
         }
-
-        private void OnCloseAllPanels()
-        {
-            foreach (var layer in layers)
-            {
-                if (layer.childCount <= 0) return;
-
-#if UNITY_EDITOR
-                DestroyImmediate(layer.GetChild(0).gameObject);
-#else
-                Destroy(layer.GetChild(0).gameObject);
-#endif
-            }
-        }
-
+        
         private void OnOpenPanel(UIPanelTypes panelType, int value)
         {
             OnClosePanel(value);

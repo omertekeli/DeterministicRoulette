@@ -23,6 +23,5 @@ namespace Runtime.Signals
         
         public UnityAction<UIPanelTypes, int> onOpenPanel = delegate { };
         public UnityAction<int> onClosePanel = delegate { };
-        public UnityAction onCloseAllPanels = delegate { };
     }
 }
