@@ -1,4 +1,5 @@
 ﻿using Runtime.Enums;
+using Runtime.Keys;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -22,9 +23,9 @@ namespace Runtime.Signals
 
         public UnityAction onPlay = delegate { };
         public UnityAction onSpin = delegate { };
+        public UnityAction onToggleStatics = delegate { };
+        public UnityAction<bool> onToggleTest = delegate { };
         public UnityAction onClearBets = delegate { };
-        public UnityAction onToggleTest = delegate { };
-        public UnityAction onOpenIstatics = delegate { };
-        public UnityAction<ChipTypes> onChooseChip = delegate { };
+        public UnityAction<ChipParams> onChooseChip = delegate { };
     }
 }

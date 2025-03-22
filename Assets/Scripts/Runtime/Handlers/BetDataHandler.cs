@@ -16,7 +16,6 @@ namespace Runtime.Handlers
                 {
                     LoadBetData();
                 }
-
                 return _betData;
             }
         }
@@ -25,28 +24,9 @@ namespace Runtime.Handlers
         {
             TextAsset jsonFile = Resources.Load<TextAsset>("Data/Bets");
             BetDictionary betDict = JsonUtility.FromJson<BetDictionary>(jsonFile.text);
-            if (betDict == null)
-            {
-                Debug.LogError("JSON deserialization başarısız!");
-            }
-            else if (betDict.bets == null)
-            {
-                Debug.LogError("BetDictionary.bets içi boş!");
-            }
-            else
-            {
-                _betData = betDict.ToDictionary();
-                Debug.Log("BetData başarıyla yüklendi!");
-            }
+            _betData = betDict.ToDictionary();
             if (jsonFile == null) return;
-            Debug.Log("BetData JSON içeriği: " + jsonFile.text);
             _betData = JsonUtility.FromJson<BetDictionary>(jsonFile.text).ToDictionary();
-            Debug.Log("Bet data loaded");
-            foreach (var bet in _betData)
-            {
-                Debug.Log($"Bahis Tipi: {bet.Key}, Sayılar: {string.Join(", ", bet.Value)}");
-            }
-                
         }
     }
 }

@@ -22,7 +22,8 @@ namespace Runtime.Signals
 
         public UnityAction onStartNewTurn = delegate { };
         public UnityAction<string> onBetCollider = delegate { };
-        public UnityAction<BetParams> onPlaceBet = delegate { };
         public UnityAction<int> onSpinResult = delegate { };
+        public UnityAction<BetParams> onPlaceBet = delegate { };
+        public UnityAction<TurnResultParams> onTurnResult = delegate { };
     }
 }

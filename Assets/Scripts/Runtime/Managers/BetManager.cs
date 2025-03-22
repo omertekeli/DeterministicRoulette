@@ -20,8 +20,8 @@ namespace Runtime.Managers
 
         private int _betAmount;
         private int _chipAmount;
+        private int _turnTotalBetAmount;
         private NewPlayerData _playerData;
-        private Dictionary<ChipTypes, int> _chipData;
         private Dictionary<BetTypes, byte> _betPayoutData;
         private Dictionary<string, int[]> _betData;
         private Dictionary<string, BetEntry> _playerBets = new Dictionary<string, BetEntry>(); 
@@ -32,16 +32,16 @@ namespace Runtime.Managers
 
         private void Awake()
         {
-            //check player is First time user o not
-            LoadFirstTimePlayerData();
-            LoadChipData();
             LoadBetPayoutData();
             _betAmount = 0;
+            _turnTotalBetAmount = 0;
         }
 
         private void Start()
         {
             _betData = BetDataHandler.BetData;
+            _playerData = PlayerDataHandler.PlayerData;
+            _chipAmount = _playerData.Chips;
         }
 
         private void OnEnable() => SubscribeEvents();
@@ -51,6 +51,7 @@ namespace Runtime.Managers
             CoreGameSignals.Instance.onPlaceBet += OnPlaceBet;
             CoreGameSignals.Instance.onSpinResult += OnSpinResult;
             UISignals.Instance.onChooseChip += OnChooseChip;
+            UISignals.Instance.onClearBets += OnClearBets;
         }
         
         private void UnSubscribeEvents()
@@ -58,39 +59,40 @@ namespace Runtime.Managers
             CoreGameSignals.Instance.onPlaceBet -= OnPlaceBet;
             UISignals.Instance.onChooseChip -= OnChooseChip;
         }
-
         private void LoadBetPayoutData() => _betPayoutData = Resources.Load<CD_BetPayout>("Data/CD_BetPayout").ToDictionary();
-        private void LoadChipData() => _chipData = Resources.Load<CD_Chips>("Data/CD_Chips").ToDictionary();
-        
-        private void LoadFirstTimePlayerData()
-        {
-            _playerData = Resources.Load<CD_NewPlayer>("Data/CD_NewPlayer").NewPlayerData;
-            _chipAmount = _playerData.Chips;
-            Debug.Log("Player chip amount: " + _chipAmount);
-        }
         
         private void OnSpinResult(int winningNumber)
         {   
-            BetEvaluationContext betEvaluationContext = new BetEvaluationContext(
+            var betEvaluationContext = new BetEvaluationContext(
                 winningNumber,
                 _playerBets,
                 _betData,
                 _betPayoutData
                 );
-            var profit = BetEvaluator.EvaluateBets(betEvaluationContext);
-            UpdateChipBalance(profit);
-            ClearPlayerBets();
+            var earnedChipAmount = BetEvaluator.EvaluateBets(betEvaluationContext);
+            var isWon = earnedChipAmount > 0 ? true : false;
+            var profit = earnedChipAmount - _turnTotalBetAmount;
+            Reset(earnedChipAmount);
+            CoreGameSignals.Instance.onTurnResult?.Invoke(new TurnResultParams()
+            {
+                IsWon = isWon,
+                Profit = profit,
+            });
         }
         
         private void OnPlaceBet(BetParams betParams)
         {
-            if (_betAmount < 0) return;
+            if (_betAmount < 1) return;
             if (_chipAmount < _betAmount) return;
+            _turnTotalBetAmount += _betAmount;
             UpdateChipBalance(-_betAmount);
             AddBet(betParams, _betAmount);
         }
-        
-        private void OnChooseChip(ChipTypes chipType) => _betAmount = _chipData.GetValueOrDefault(chipType, 0);
+
+        private void OnChooseChip(ChipParams chipParams)
+        {
+            _betAmount = chipParams.Amount;
+        }
         private void AddBet(BetParams betParams, int betAmount)
         {
             if(_playerBets.ContainsKey(betParams.BetName))
@@ -104,8 +106,18 @@ namespace Runtime.Managers
                 Debug.Log("Player bets on " + betParams.BetName + " by amount " + betAmount);
             }
         }
-
+        
+        private void Reset(int amount)
+        {
+            UpdateChipBalance(amount);
+            ResetBets();
+            _turnTotalBetAmount = 0;
+        }
         private void UpdateChipBalance(int amount) =>  _chipAmount += amount;
-        private void ClearPlayerBets() => _playerBets.Clear();
+        private void ResetBets() => _playerBets.Clear();
+        private void OnClearBets()
+        {
+            Reset(_turnTotalBetAmount);
+        }
     }
 }
