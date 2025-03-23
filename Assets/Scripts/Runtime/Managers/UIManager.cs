@@ -11,24 +11,22 @@ namespace Runtime.Managers
         
         private void SubscribeEvents()
         {
-            CoreGameSignals.Instance.onSpinResult += OnSpinResult;
-            CoreGameSignals.Instance.onStartNewTurn += OnStartNewTurn;
+            //CoreGameSignals.Instance.onTurnResult += OnTurnResult;
         }
 
-        private void OnStartNewTurn()
+        private void OnTurnResult()
         {
-            CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Bet, 1);
+            //CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Bet, 1);
         }
 
         private void OnSpinResult(int winningNumber)
         {
-            CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Result, 3);
+            //CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Result, 3);
         }
 
         private void UnSubscribeEvents()
         {
-            CoreGameSignals.Instance.onSpinResult -= OnSpinResult;
-            CoreGameSignals.Instance.onStartNewTurn -= OnStartNewTurn;
+            //CoreGameSignals.Instance.onSpinResult -= OnSpinResult;
         }
 
 

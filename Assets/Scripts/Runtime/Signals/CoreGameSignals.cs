@@ -19,11 +19,13 @@ namespace Runtime.Signals
         }
         
         #endregion
-
-        public UnityAction onStartNewTurn = delegate { };
+        
         public UnityAction<string> onBetCollider = delegate { };
-        public UnityAction<int> onSpinResult = delegate { };
         public UnityAction<BetParams> onPlaceBet = delegate { };
+        public UnityAction<int> onSpin = delegate { };
+        public UnityAction<GameObject> onGoTarget = delegate { };
+        public UnityAction onStopBall = delegate { };
+        public UnityAction<int> onSpinResult = delegate { };
         public UnityAction<TurnResultParams> onTurnResult = delegate { };
     }
 }

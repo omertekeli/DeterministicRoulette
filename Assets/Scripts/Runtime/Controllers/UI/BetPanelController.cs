@@ -79,7 +79,7 @@ namespace Runtime.Controllers.UI
 
         private void OnClickSpinButton()
         {
-            UISignals.Instance.onSpin?.Invoke();
+            UISignals.Instance.onPrepareSpin?.Invoke();
         }
 
         private void UnSubscribeEvents()
