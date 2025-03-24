@@ -34,5 +34,10 @@ namespace Runtime.Controllers.Ball
         
         internal void StartRotation() => _canRotate = true;
         internal void StopRotation() => _canRotate = false;
+
+        internal void ToggleMeshRenderer()
+        {
+            transform.GetComponent<MeshRenderer>().enabled = !transform.GetComponent<MeshRenderer>().enabled;
+        }
     }
 }

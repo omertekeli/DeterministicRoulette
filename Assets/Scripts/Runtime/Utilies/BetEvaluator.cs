@@ -13,15 +13,16 @@ namespace Runtime.Utilies
             int profit = 0;
             foreach (var bet in context.PlayerBets)
             {
+                Debug.Log("Bet name: " + bet.Key);
                 if (!context.BetNumbers.TryGetValue(bet.Key, out var numbers))
                     continue; 
                 if (!numbers.Contains(context.WinningNumber))
                     continue;
+                Debug.Log("Player bet amount: " + bet.Value.Amount);
+                Debug.Log("Profit from bet: " + bet.Value.Amount * context.PayoutRatios[bet.Value.BetType]);
                 profit += bet.Value.Amount * context.PayoutRatios[bet.Value.BetType];
-                Debug.Log("Winner bet: " + bet.Key);
-                Debug.Log("Profit: " + profit);
             }
-            Debug.Log("Total Profit: " + profit);
+            Debug.Log("Total profit: " + profit);
             return profit;
         }
 

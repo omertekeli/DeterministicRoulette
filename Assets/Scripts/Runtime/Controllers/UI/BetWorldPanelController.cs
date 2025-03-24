@@ -70,14 +70,11 @@ namespace Runtime.Controllers.UI
             ToggleHighlight(false);
             
             var numbers = _betData[betName];
-            Debug.Log("Numbers: " + string.Join(", ", numbers));
             foreach (var number in numbers)
             {
                 if (_highlightImageMap.TryGetValue(number.ToString(), out Image newImage))
                 {
-                    Debug.Log("Activate image: " + newImage.name);
                     newImage.gameObject.SetActive(true);
-                    Debug.Log($"After activation: {newImage.gameObject.activeSelf}");
                 }
             }
         }

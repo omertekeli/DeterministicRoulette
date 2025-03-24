@@ -14,22 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   payouts:
   - betType: 0
-    multiplier: 0
+    multiplier: 35
   - betType: 1
-    multiplier: 0
+    multiplier: 17
   - betType: 3
-    multiplier: 0
+    multiplier: 11
   - betType: 2
-    multiplier: 0
+    multiplier: 8
   - betType: 4
-    multiplier: 0
+    multiplier: 5
   - betType: 5
-    multiplier: 0
+    multiplier: 2
   - betType: 6
-    multiplier: 0
+    multiplier: 2
   - betType: 7
-    multiplier: 0
+    multiplier: 1
   - betType: 8
-    multiplier: 0
+    multiplier: 1
   - betType: 9
-    multiplier: 0
+    multiplier: 1

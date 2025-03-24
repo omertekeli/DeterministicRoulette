@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Runtime.Enums;
 using Runtime.Handlers;
@@ -17,6 +18,7 @@ namespace Runtime.Controllers.UI
 
         #region SerializedField Variables
 
+        [SerializeField] private GameObject container;
         [SerializeField] private List<Button> chipButtons;
         [SerializeField] private Button clearButton;
         [SerializeField] private Button statisticsButton;
@@ -57,6 +59,13 @@ namespace Runtime.Controllers.UI
             ToggleTestUIComponents();
         }
 
+        private IEnumerator ActivatePanel()
+        {
+            //TODO: get duration via camera data
+            yield return new WaitForSeconds(1f);
+            container.SetActive(true);
+        }
+
         private void SetVariableValues()
         {
             _isOnTest = false;
@@ -75,11 +84,38 @@ namespace Runtime.Controllers.UI
             testButton.onClick.AddListener(OnClickTestButton);
             spinButton.onClick.AddListener(OnClickSpinButton);
             CoreGameSignals.Instance.onPlaceBet += OnPlaceBet;
+            CoreGameSignals.Instance.onTurnResult += OnTurnResult;
+            //TODO: remove onOpenPanel, after implementing save system. Now, bet panel has to be active, dont inistiate it
+            CoreUISignals.Instance.onOpenPanel += OnOpenPanel;
+        }
+
+        private void OnOpenPanel(UIPanelTypes panel, int arg1)
+        {
+            if (panel == UIPanelTypes.Bet)
+            {
+                StartCoroutine(ActivatePanel());
+                
+            }
+            else
+            {
+                container.SetActive(false); 
+            }
         }
 
         private void OnClickSpinButton()
         {
+            container.SetActive(false);
+            spinButton.interactable = false;
+            ResetChipButtons();
             UISignals.Instance.onPrepareSpin?.Invoke();
+        }
+
+        private void ResetChipButtons()
+        {
+            foreach (var button in chipButtons)
+            {
+                button.GetComponent<UIButtonEffectHandler>().ResetAll();
+            }
         }
 
         private void UnSubscribeEvents()
@@ -92,13 +128,25 @@ namespace Runtime.Controllers.UI
             statisticsButton.onClick.RemoveListener(OnClickStatisticsButton);
             testButton.onClick.RemoveListener(OnClickTestButton);
             CoreGameSignals.Instance.onPlaceBet -= OnPlaceBet;
+            CoreGameSignals.Instance.onTurnResult -= OnTurnResult;
+            CoreUISignals.Instance.onOpenPanel -= OnOpenPanel;
+        }
+
+        private void OnTurnResult(TurnResultParams arg0)
+        {
+            _selectedChipAmount = 0;
+            _turnTotalBetAmount = 0;
+            _playerTotalChips += arg0.EarnedChipAmount;
+            SetTexts();
         }
 
         private void OnPlaceBet(BetParams betParams)
         {
+            if (_selectedChipAmount <= 0) return;
             _turnTotalBetAmount += _selectedChipAmount;
             _playerTotalChips -= _selectedChipAmount;
             SetTexts();
+            spinButton.interactable = true;
         }
 
         private void OnClickTestButton()
@@ -132,7 +180,6 @@ namespace Runtime.Controllers.UI
 
         private void OnClickChip(Button button)
         {
-            Debug.Log("Click on " + button.name);
             if (!Enum.TryParse(button.name, out ChipTypes chipType)) return;
             _selectedChipAmount = _chipData.GetValueOrDefault(chipType, 0);
             UISignals.Instance.onChooseChip?.Invoke(new ChipParams()
@@ -144,17 +191,16 @@ namespace Runtime.Controllers.UI
 
         private void OnClickStatisticsButton()
         {
-            Debug.Log("Toggle Statistics");
             UISignals.Instance.onToggleStatics?.Invoke();
         }
         
         private void OnClickClearButton()
         {
-            Debug.Log("Clear Player Bets");
             UISignals.Instance.onClearBets?.Invoke();
             _playerTotalChips += _turnTotalBetAmount;
             _turnTotalBetAmount = 0;
             SetTexts();
+            spinButton.interactable = false;
         }
         private void SetTexts()
         {

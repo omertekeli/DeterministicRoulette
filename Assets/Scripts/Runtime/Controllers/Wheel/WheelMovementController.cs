@@ -26,7 +26,6 @@ namespace Runtime.Controllers.Wheel
         private void FixedUpdate()
         {
             if (!_canRotating) return;
-            //since the ball will go to the target with physics, this process should be with fixed update
             wheelTransform.Rotate(Vector3.up * (rouletteRotationSpeed * Time.fixedDeltaTime), Space.World);;
         }
         

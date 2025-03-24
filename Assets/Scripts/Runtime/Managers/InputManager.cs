@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Runtime.Controllers;
+using Runtime.Keys;
 using Runtime.Signals;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -25,15 +27,33 @@ namespace Runtime.Managers
             _mainCamera = Camera.main;
             _isBetState = false;
         }
-        
-        //Oyun Statelerini ayarla
+
+        private void OnEnable() => SubscribeEvents();
+
+        private void OnDisable() => UnSubscribeEvents();
+
+        private void UnSubscribeEvents()
+        {
+            UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
+            UISignals.Instance.onChooseChip -= OnChooseChip;
+        }
+
+        private void SubscribeEvents()
+        {
+            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
+            UISignals.Instance.onChooseChip += OnChooseChip;
+        }
+
+        private void OnPrepareSpin() => _isBetState = false;
+        private void OnChooseChip(ChipParams arg0) => _isBetState = true;
 
         private void Update()
         {
             if (!_isBetState) return;
             if (IsPointerOverUIElement()) return;
             var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.RaycastNonAlloc(ray, _raycastHits) <= 0)
+            int layerMask = ~LayerMask.GetMask("Ignore Raycast");
+            if (Physics.RaycastNonAlloc(ray, _raycastHits, Mathf.Infinity, layerMask) <= 0)
             {
                 CoreGameSignals.Instance.onBetCollider?.Invoke(""); 
             }

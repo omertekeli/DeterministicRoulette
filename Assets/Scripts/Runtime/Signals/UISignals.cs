@@ -22,10 +22,10 @@ namespace Runtime.Signals
         #endregion
 
         public UnityAction onPlay = delegate { };
-        public UnityAction onPrepareSpin = delegate { };
         public UnityAction onToggleStatics = delegate { };
         public UnityAction<bool> onToggleTest = delegate { };
-        public UnityAction onClearBets = delegate { };
         public UnityAction<ChipParams> onChooseChip = delegate { };
+        public UnityAction onPrepareSpin = delegate { };
+        public UnityAction onClearBets = delegate { };
     }
 }

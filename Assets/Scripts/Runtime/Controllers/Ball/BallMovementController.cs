@@ -22,7 +22,7 @@ namespace Runtime.Controllers.Ball
         [SerializeField] private Transform rouletteWheel;
         [SerializeField] private float initialBallSpeed  = 500f;
         [SerializeField] private float ballSpeedSlowDownRate  = 0.5f;
-        [SerializeField] private float ballStopThreshold = 0.05f;
+        [SerializeField] private float ballStopThreshold = 0.1f;
         [SerializeField] private float ballForwardForceMultiplier = 2f;
         [SerializeField] private float pullAreaDot = 0.85f;
         [SerializeField] private float minBallSpeedToPull = 150f; //Must be greater than wheel rotation speed
@@ -32,7 +32,7 @@ namespace Runtime.Controllers.Ball
 
         #region Private Variables
 
-        private Vector3 _ballLaunchPosition;
+        private Matrix4x4 _ballLaunchMatrix4X4;
         private Transform _targetSlot;
         private Rigidbody _rigidbody;
         private bool _isSpinning;
@@ -51,7 +51,7 @@ namespace Runtime.Controllers.Ball
 
         private void SetVariableValues()
         {
-            _ballLaunchPosition = transform.position;
+            _ballLaunchMatrix4X4 = transform.localToWorldMatrix;
             _rigidbody = GetComponent<Rigidbody>();
             _isSpinning = false;
             _isUsingPhysics = false;
@@ -65,6 +65,7 @@ namespace Runtime.Controllers.Ball
             _rigidbody.angularDrag = 0.1f;
         }
 
+        //TODO:Create formula to increase reality by changing pullAreaDot, attractionForce, minBallSpeedToPull
         void Update()
         {
             if (!_isSpinning) return;
@@ -74,6 +75,9 @@ namespace Runtime.Controllers.Ball
             {
                 initialBallSpeed -= ballSpeedSlowDownRate;
             }
+            
+            //TODO: Use force the ball go to the center but slowl
+            
             if (initialBallSpeed > minBallSpeedToPull) return;
             if (!IsSlotNear()) return;
             EnablePhysicsMode();
@@ -90,20 +94,27 @@ namespace Runtime.Controllers.Ball
             }
         }
         
-        internal void PrepareSpin()
+        internal void Spin(Transform target)
         {
+            _targetSlot = target;
+            _rigidbody.isKinematic = false;
+            _isSpinning = true;
+        }
+        
+        internal void Reset()
+        {
+            _rigidbody.isKinematic = true;
+            _isSpinning = false;
+            transform.position = _ballLaunchMatrix4X4.GetColumn(3);
+            transform.rotation = _ballLaunchMatrix4X4.rotation;
+            transform.localScale = _ballLaunchMatrix4X4.lossyScale;
             initialBallSpeed = 500f;
             _isUsingPhysics = false;
             _isOnSlot = false;
-            transform.SetParent(null);
-            transform.position = _ballLaunchPosition;
+            _rigidbody.useGravity = false;
+            _rigidbody.drag = 0.1f;
+            _rigidbody.angularDrag = 0.1f;
         }
-        
-        internal void Spin()
-        {
-            _isSpinning = true;
-        }
-
         private void ApplyAttractionForce()
         {
             Vector3 forceDirection = (_targetSlot.position - transform.position).normalized;
@@ -118,7 +129,7 @@ namespace Runtime.Controllers.Ball
         }
 
         private void EnablePhysicsMode()
-        {
+        { 
             _isUsingPhysics = true;
             _rigidbody.useGravity = true;
             Vector3 forwardForce = _rigidbody.velocity.normalized * ballForwardForceMultiplier;
@@ -127,17 +138,16 @@ namespace Runtime.Controllers.Ball
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!_isSpinning) return;
+            if (_isOnSlot) return;
             if (!other.CompareTag("SlotMagnet")) return;
             StopBall();
         }
 
         private void StopBall()
         {
-            _rigidbody.drag = 5f;
-            _rigidbody.angularDrag = 5f;
             _isOnSlot = true;
-            transform.SetParent(_targetSlot);
+            _rigidbody.drag = 5;
+            _rigidbody.angularDrag = 5f;
             CoreGameSignals.Instance.onBallStopped?.Invoke();
         }
     }

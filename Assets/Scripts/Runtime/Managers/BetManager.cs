@@ -71,7 +71,7 @@ namespace Runtime.Managers
             UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
             UISignals.Instance.onChooseChip -= OnChooseChip;
             UISignals.Instance.onClearBets -= OnClearBets;
-            UISignals.Instance.onToggleTest += OnToggleTest;
+            UISignals.Instance.onToggleTest -= OnToggleTest;
         }
 
         private void LoadBetPayoutData() => _betPayoutData = Resources.Load<CD_BetPayout>("Data/CD_BetPayout").ToDictionary();
@@ -83,7 +83,7 @@ namespace Runtime.Managers
         
         private void OnPrepareSpin()
         {
-            _winningNumber = _isOnTest ? Random.Range(0, 37) : BetEvaluator.GetWinningNumber(_playerBets, _betData);
+            _winningNumber = _isOnTest ? BetEvaluator.GetWinningNumber(_playerBets, _betData) : Random.Range(0, 37);
             CoreGameSignals.Instance.onSpin?.Invoke(_winningNumber);
         }
 
@@ -138,13 +138,15 @@ namespace Runtime.Managers
         {
             if(_playerBets.ContainsKey(betParams.BetName))
             {
-                _playerBets[betParams.BetName].Amount += betAmount;
-                Debug.Log("Player increase bet on " + betParams.BetName + " and new bet amount is " + _playerBets[betParams.BetName].Amount);
+                var bet = _playerBets[betParams.BetName];
+                bet.Amount += betAmount;
+                bet.TotalBetTimes++;
+                //Debug.Log("Player increase bet on " + betParams.BetName + " and new bet amount is " + _playerBets[betParams.BetName].Amount);
             }
             else
             {
                 _playerBets.Add(betParams.BetName, new BetEntry(betParams.BetType, betAmount));
-                Debug.Log("Player bets on " + betParams.BetName + " by amount " + betAmount);
+                //Debug.Log("Player bets on " + betParams.BetName + " by amount " + betAmount);
             }
         }
         

@@ -1,5 +1,6 @@
 ﻿using System;
 using Runtime.Managers;
+using Runtime.Signals;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,19 +21,19 @@ namespace Runtime.Handlers
         [SerializeField] private bool hasEffectSubscription = false;
         [SerializeField] private bool enableMove = false;
         [SerializeField] private bool enableScale = false;
-        [SerializeField] private Vector3 moveVector = new Vector3(0, 10, 0);
+        [SerializeField] private Vector2 moveVector = new Vector2(0, 50);
         [SerializeField] private float scaleFactor = 1.2f;
         [SerializeField] private float duration = 0.2f;
-        [SerializeField] private Transform target;
+        [SerializeField] private RectTransform target;
 
         #endregion
 
         #region Private Variables
         
         private Button _button;
-        private Vector3 _originalPos;
-        private Vector3 _originalScale;
-        private bool _isDefaultScale;
+        private Vector2 _originalPos;
+        private Vector2 _originalSize;
+        private bool _isDefaultSize;
         private bool _isDefaultPos;
         private UIEffectManager _effectManager;
 
@@ -78,7 +79,7 @@ namespace Runtime.Handlers
         
         private void TryToInvoke()
         {
-            if (_isDefaultPos || _isDefaultScale)
+            if (_isDefaultPos || _isDefaultSize)
             {
                 onButtonEffectTriggered?.Invoke(this);
             }
@@ -93,15 +94,15 @@ namespace Runtime.Handlers
         private void TryToScale()
         {
             if (!enableScale) return;
-            if (_isDefaultScale) ScaleToTarget();
+            if (_isDefaultSize) ScaleToTarget();
             else ResetScale();
         }
 
         private void ScaleToTarget()
         {
-            var targetScale = target.localScale * scaleFactor;
+            var targetScale = target.sizeDelta * scaleFactor;
             _effectManager.ScaleUI(target, targetScale, duration);
-            _isDefaultScale = false;
+            _isDefaultSize = false;
         }
 
         private void TryToMove()
@@ -113,20 +114,20 @@ namespace Runtime.Handlers
 
         private void MoveToTarget()
         {
-            var targetPos = target.position + moveVector;
+            var targetPos = target.anchoredPosition + moveVector;
             _effectManager.MoveUI(target, targetPos, duration);
             _isDefaultPos = false;
         }
 
         private void SetVariableValues()
         {
-            _isDefaultScale = true;
+            _isDefaultSize = true;
             _isDefaultPos = true;
-            _originalPos = target.position;
-            _originalScale = target.localScale;
+            _originalPos = target.anchoredPosition;
+            _originalSize = target.sizeDelta;
         }
 
-        private void ResetAll()
+        public void ResetAll()
         {
             ResetPosition();
             ResetScale();
@@ -135,8 +136,8 @@ namespace Runtime.Handlers
         private void ResetScale()
         {
             if (!enableScale) return;
-            _effectManager.ResetScale(target, _originalScale, duration);
-            _isDefaultScale = true;
+            _effectManager.ResetScale(target, _originalSize, duration);
+            _isDefaultSize = true;
         }
 
         private void ResetPosition()

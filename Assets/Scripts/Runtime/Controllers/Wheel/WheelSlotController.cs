@@ -14,7 +14,8 @@ namespace Runtime.Controllers.Wheel
         #endregion
 
         #region Private Variables
-        
+
+        private GameObject _lastTargetSlot;
         private Dictionary<int, GameObject> _slots = new Dictionary<int, GameObject>();
         
         #endregion
@@ -30,22 +31,18 @@ namespace Runtime.Controllers.Wheel
         {
             if (_slots.TryGetValue(slotNumber, out var slotObject))
             {
-                TurnOffTriggers();
-                slotObject.GetComponent<Collider>().isTrigger = true;
+                if (_lastTargetSlot)
+                {
+                    _lastTargetSlot.SetActive(false);
+                }
+                slotObject.SetActive(true);
+                _lastTargetSlot = slotObject;
                 return slotObject;
             }
             else
             {
                 Debug.LogWarning("Target Slot: " + slotNumber + " not found");
                 return null;
-            }
-        }
-
-        private void TurnOffTriggers()
-        {
-            foreach (var slot in slotObjects)
-            {
-                slot.GetComponent<Collider>().isTrigger = false;
             }
         }
 

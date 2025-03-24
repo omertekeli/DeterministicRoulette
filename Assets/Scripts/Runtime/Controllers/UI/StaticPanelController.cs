@@ -47,25 +47,16 @@ namespace Runtime.Controllers.UI
         {
             CoreGameSignals.Instance.onTurnResult += OnTurnResult;
             UISignals.Instance.onToggleStatics += OnToggleStatics;
-            closeButton.onClick.AddListener(OnClickCloseButton);
         }
 
         private void UnSubscribeEvents()
         {
             CoreGameSignals.Instance.onTurnResult -= OnTurnResult;
             UISignals.Instance.onToggleStatics -= OnToggleStatics;
-            closeButton.onClick.RemoveListener(OnClickCloseButton);
-        }
-        
-        private void OnClickCloseButton()
-        {
-            panel.SetActive(false);
-            background.enabled = false;
         }
 
         private void OnToggleStatics()
         {
-            Debug.Log("Turn on or off panel");
             panel.SetActive(!panel.activeSelf);
             background.enabled = !background.enabled;
         }
@@ -73,6 +64,7 @@ namespace Runtime.Controllers.UI
         private void OnTurnResult(TurnResultParams turnResultParams)
         {
             _gameStats.AddRound(turnResultParams.Profit, turnResultParams.IsWon);
+            UpdateUI();
         }
 
         private void UpdateUI()

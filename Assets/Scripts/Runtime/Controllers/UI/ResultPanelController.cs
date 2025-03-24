@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Runtime.Handlers;
 using Runtime.Managers;
 using Runtime.Signals;
@@ -15,7 +16,7 @@ namespace Runtime.Controllers.UI
 
         [SerializeField] private Image winningNumberImage;
         [SerializeField] private TextMeshProUGUI winningNumberText;
-        [SerializeField] private Vector3 targetPos;
+        [SerializeField] private Vector2 targetPos;
         
         #endregion
 
@@ -29,10 +30,6 @@ namespace Runtime.Controllers.UI
         
         #endregion
         
-        private void Awake()
-        {
-            FindReferences();
-        }
         private void OnEnable() => SubscribeEvents();
         private void OnDisable() => UnsubscribeEvents();
 
@@ -40,6 +37,7 @@ namespace Runtime.Controllers.UI
         {
             _betData = BetDataHandler.BetData;
             _defaultTransform = transform;
+            FindReferences();
         }
 
         private void FindReferences()
@@ -67,15 +65,20 @@ namespace Runtime.Controllers.UI
                 }
                 else if (_betData.TryGetValue("Red", out var redNumbers))
                 {
-                    image.color = Color.red;
+                    if (redNumbers.Contains(winningNumber))
+                    {
+                        image.color = Color.red;
+                    }
                 }
                 else if (_betData.TryGetValue("Black", out var blackNumbers))
                 {
-                    image.color = Color.black;
+                    if (blackNumbers.Contains(winningNumber))
+                    {
+                        image.color = Color.black;
+                    }
                 } 
             }
-            
-            _effectManager.MoveAndBack(_defaultTransform, targetPos, 0.2f);
+            _effectManager.MoveAndBack(winningNumberImage.rectTransform, targetPos, 0.5f);
         }
         
     }

@@ -40,8 +40,8 @@ namespace Runtime.Managers
         private void OnSpin(int targetNumber)
         {
             var slotObject = wheelSlotController.GetSlot(targetNumber);
-            if (slotObject)
-                CoreGameSignals.Instance.onGoTarget?.Invoke(slotObject);
+            if (!slotObject) return;
+            CoreGameSignals.Instance.onGoTarget?.Invoke(slotObject.transform);
 
         }
 

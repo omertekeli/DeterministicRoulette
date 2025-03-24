@@ -6,41 +6,41 @@ namespace Runtime.Managers
 {
    public class UIEffectManager : MonoBehaviour
    { 
-        public void ScaleUI(Transform target, Vector3 targetScale, float duration)
+        public void ScaleUI(RectTransform target, Vector2 targetSize, float duration)
         {
-            StartCoroutine(ScaleAnimation(target, targetScale, duration));
+            StartCoroutine(ScaleAnimation(target, targetSize, duration));
         }
 
-        public void MoveUI(Transform target, Vector3 targetPos, float duration)
+        public void MoveUI(RectTransform target, Vector2 targetPos, float duration)
         {
             StartCoroutine(MoveAnimation(target, targetPos, duration));
         }
         
-        public void MoveAndBack(Transform target, Vector3 targetPos, float duration)
+        public void MoveAndBack(RectTransform  target, Vector2 targetPos, float duration)
         {
             StartCoroutine(MoveAndBackAnimation(target, targetPos, duration));
         }
         
-        public void ScaleUpDownUI(Transform target, Vector3 targetScale, float duration)
+        public void ScaleUpDownUI(RectTransform target, Vector2 targetSize, float duration)
         {
-            StartCoroutine(ScaleUpDownAnimation(target, targetScale, duration));
+            StartCoroutine(ScaleUpDownAnimation(target, targetSize, duration));
         }
         
-        private IEnumerator MoveAndBackAnimation(Transform target, Vector3 targetPos, float duration)
+        private IEnumerator MoveAndBackAnimation(RectTransform  target, Vector2 targetPos, float duration)
         {
-            Vector3 startPos = target.position;
+            Vector2 startPos = target.anchoredPosition;
             float elapsedTime = 0;
 
             while (elapsedTime < duration)
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseInOut(t); 
-                target.position = Vector3.Lerp(startPos, targetPos, t);
+                target.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
-            target.position = targetPos;
+            target.anchoredPosition = targetPos;
             
             yield return new WaitForSeconds(1f);
 
@@ -49,85 +49,84 @@ namespace Runtime.Managers
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseInOut(t); 
-                target.position = Vector3.Lerp(targetPos, startPos, t);
+                target.anchoredPosition = Vector2.Lerp(targetPos, startPos, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
             
-            target.position = startPos;
+            target.anchoredPosition = startPos;
         }
 
-        private IEnumerator ScaleUpDownAnimation(Transform target, Vector3 targetScale, float duration)
+        private IEnumerator ScaleUpDownAnimation(RectTransform target, Vector2 targetSize, float duration)
         {
-            Vector3 startScale = target.localScale; 
+            Vector2 startSize = target.sizeDelta; 
             float elapsedTime = 0;
 
             while (elapsedTime < duration)
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseInOut(t);
-                target.localScale = Vector3.Lerp(startScale, targetScale, t);
+                target.sizeDelta = Vector2.Lerp(startSize, targetSize, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
-            target.localScale = targetScale;
+            target.sizeDelta = targetSize;
 
             elapsedTime = 0;
             while (elapsedTime < duration)
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseOut(t);
-                target.localScale = Vector3.Lerp(targetScale, startScale, t);
+                target.sizeDelta = Vector2.Lerp(targetSize, startSize, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
-            target.localScale = startScale;
+            target.sizeDelta = startSize;
         }
 
-        private IEnumerator ScaleAnimation(Transform target, Vector3 targetScale, float duration)
+        private IEnumerator ScaleAnimation(RectTransform target, Vector2 targetSize, float duration)
         {
-            Vector3 startScale = target.localScale;
+            Vector2 startSize = target.sizeDelta;
             float elapsedTime = 0;
             
             while (elapsedTime < duration)
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseInOut(t);
-                target.localScale = Vector3.Lerp(startScale, targetScale, t);
+                target.sizeDelta = Vector2.Lerp(startSize, targetSize, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
-            target.localScale = targetScale;
+            target.sizeDelta = targetSize;
         }
 
-        private IEnumerator MoveAnimation(Transform target, Vector3 targetPos, float duration)
+        private IEnumerator MoveAnimation(RectTransform target, Vector2 targetPos, float duration)
         {
-            Vector3 startPos = target.position;
+            Vector2 startPos = target.anchoredPosition;
             float elapsedTime = 0;
-
             while (elapsedTime < duration)
             {
                 float t = elapsedTime / duration;
                 t = UIEaseUtility.EaseInOut(t); 
-                target.position = Vector3.Lerp(startPos, targetPos, t);
+                target.anchoredPosition = Vector2.Lerp(startPos, targetPos, t);
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
 
-            target.position = targetPos;
+            target.anchoredPosition = targetPos;
         }
         
-        public void ResetPosition(Transform target, Vector3 originalPosition, float duration)
+        public void ResetPosition(RectTransform target, Vector3 originalPosition, float duration)
         {
             StartCoroutine(MoveAnimation(target, originalPosition, duration));
         }
         
-        public void ResetScale(Transform target, Vector3 originalScale, float duration)
+        public void ResetScale(RectTransform  target, Vector2 originalSize, float duration)
         {
-            StartCoroutine(ScaleAnimation(target, originalScale, duration));
+            StartCoroutine(ScaleAnimation(target, originalSize, duration));
         }
    }
 }

@@ -22,7 +22,6 @@ namespace Runtime.Controllers
 
         private void OnMouseDown()
         {   
-            Debug.Log("Click on " + betType);
             CoreGameSignals.Instance.onPlaceBet?.Invoke(new BetParams()
                 {
                     BetType = betType,

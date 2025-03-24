@@ -41,10 +41,10 @@ namespace Runtime.Managers
         
         private void SubscribeEvents()
         {
-            CoreGameSignals.Instance.onTurnResult += OnTurnResult;
-            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
             UISignals.Instance.onPlay += OnPlay;
+            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
             UISignals.Instance.onChooseChip += OnChooseChip;
+            CoreGameSignals.Instance.onStartNewTurn += OnStartNewTurn;
         }
 
         private void OnChooseChip(ChipParams arg0)
@@ -53,7 +53,7 @@ namespace Runtime.Managers
             SwitchToCamera(GameStates.Bet);
         }
 
-        private void OnTurnResult(TurnResultParams arg0)
+        private void OnStartNewTurn()
         {
             _transitionDuration = 1f;
             SwitchToCamera(GameStates.Bet);
@@ -73,7 +73,7 @@ namespace Runtime.Managers
 
         private void UnSubscribeEvents()
         {
-            CoreGameSignals.Instance.onTurnResult -= OnTurnResult;
+            CoreGameSignals.Instance.onStartNewTurn -= OnStartNewTurn;
             UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
             UISignals.Instance.onPlay -= OnPlay;
         }
@@ -104,6 +104,7 @@ namespace Runtime.Managers
             Quaternion startRotation = targetCamera.transform.rotation;
             float startFOV = targetCamera.fieldOfView;
             float startOrthoSize = targetCamera.orthographicSize;
+            targetCamera.orthographic = targetState.IsOrthographic;
             
             while (elapsedTime < _transitionDuration)
             {
@@ -120,8 +121,6 @@ namespace Runtime.Managers
 
                 yield return null;
             }
-            
-            targetCamera.orthographic = targetState.IsOrthographic;
             
             _isTweening = false;
         }
