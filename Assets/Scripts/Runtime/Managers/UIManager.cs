@@ -1,4 +1,5 @@
 ﻿using Runtime.Enums;
+using Runtime.Keys;
 using Runtime.Signals;
 using UnityEngine;
 
@@ -11,23 +12,26 @@ namespace Runtime.Managers
         
         private void SubscribeEvents()
         {
-            //CoreGameSignals.Instance.onTurnResult += OnTurnResult;
+            CoreGameSignals.Instance.onTurnResult += OnTurnResult;
         }
 
-        private void OnTurnResult()
+        private void OnTurnResult(TurnResultParams arg0)
         {
-            //CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Bet, 1);
-        }
-
-        private void OnSpinResult(int winningNumber)
-        {
-            //CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Result, 3);
+            //Kazanıp kazanmadığı sonrasın newStartTurn Atalım
+            CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.Bet, 1);
         }
 
         private void UnSubscribeEvents()
         {
-            //CoreGameSignals.Instance.onSpinResult -= OnSpinResult;
+            CoreGameSignals.Instance.onSpinResult -= OnSpinResult;
         }
+        
+        private void OnSpinResult(int winningNumber)
+        {
+            CoreUISignals.Instance.onOpenPanel?.Invoke(UIPanelTypes.SpinResult, 3);
+        }
+
+
 
 
         

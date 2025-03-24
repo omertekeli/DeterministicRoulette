@@ -21,33 +21,32 @@ namespace Runtime.Managers
         
         private void SubscribeEvents()
         {
-            CoreGameSignals.Instance.onSpin += OnSpin;
             CoreGameSignals.Instance.onGoTarget += OnGoTarget;
-            CoreGameSignals.Instance.onStopBall += OnStopBall;
+            CoreGameSignals.Instance.onBallStopped += OnBallStopped;
+            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
         }
         
         private void UnSubscribeEvents()
         {
-            CoreGameSignals.Instance.onSpin -= OnSpin;
             CoreGameSignals.Instance.onGoTarget += OnGoTarget;
-            CoreGameSignals.Instance.onStopBall += OnStopBall;
+            CoreGameSignals.Instance.onBallStopped += OnBallStopped;
+            UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
         }
 
-        private void OnStopBall()
+        private void OnBallStopped()
         {
-            //ballMovementController.StopBall();
+            ballMeshController.StopRotation();
+        }
+
+        private void OnPrepareSpin()
+        {
+            ballMovementController.PrepareSpin();
         }
 
         private void OnGoTarget(GameObject target)
         {
-            ballMeshController.StopRotation();
-            //ballMovementController.GoTarget(target);
-        }
-
-        private void OnSpin(int targetNumber)
-        {
-            ballMovementController.Spin();
             ballMeshController.StartRotation();
+            ballMovementController.Spin();
         }
     }
 }

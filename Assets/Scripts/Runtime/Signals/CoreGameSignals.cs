@@ -24,8 +24,8 @@ namespace Runtime.Signals
         public UnityAction<BetParams> onPlaceBet = delegate { };
         public UnityAction<int> onSpin = delegate { };
         public UnityAction<GameObject> onGoTarget = delegate { };
-        public UnityAction onStopBall = delegate { };
         public UnityAction<int> onSpinResult = delegate { };
         public UnityAction<TurnResultParams> onTurnResult = delegate { };
+        public UnityAction onBallStopped = delegate { };
     }
 }

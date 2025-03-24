@@ -1,7 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Runtime.Enums;
+using Runtime.Keys;
 using Runtime.Models;
+using Runtime.Signals;
 using UnityEngine;
 
 namespace Runtime.Managers
@@ -14,18 +17,67 @@ namespace Runtime.Managers
 
         [SerializeField] private Camera targetCamera;
         [SerializeField] private List<CameraState> cameraStates = new List<CameraState>();
-        [SerializeField] private float transitionDuration = 1f;
         
         #endregion
 
         #region Private Variables
 
-        private bool _isTweening = false;
+        private bool _isTweening;
+        private float _transitionDuration;
 
         #endregion
         
         #endregion
         
+        private void OnEnable() => SubscribeEvents();
+        
+        private void OnDisable() => UnSubscribeEvents();
+        
+        private void Start()
+        {
+            _isTweening = false;
+            _transitionDuration = 1f;
+        }
+        
+        private void SubscribeEvents()
+        {
+            CoreGameSignals.Instance.onTurnResult += OnTurnResult;
+            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
+            UISignals.Instance.onPlay += OnPlay;
+            UISignals.Instance.onChooseChip += OnChooseChip;
+        }
+
+        private void OnChooseChip(ChipParams arg0)
+        {
+            _transitionDuration = 1f;
+            SwitchToCamera(GameStates.Bet);
+        }
+
+        private void OnTurnResult(TurnResultParams arg0)
+        {
+            _transitionDuration = 1f;
+            SwitchToCamera(GameStates.Bet);
+        }
+        
+        private void OnPrepareSpin()
+        {
+            _transitionDuration = 1f;
+            SwitchToCamera(GameStates.Spin);
+        }
+
+        private void OnPlay()
+        {
+            _transitionDuration = 1f;
+            SwitchToCamera(GameStates.Idle);
+        }
+
+        private void UnSubscribeEvents()
+        {
+            CoreGameSignals.Instance.onTurnResult -= OnTurnResult;
+            UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
+            UISignals.Instance.onPlay -= OnPlay;
+        }
+
         private void SwitchToCamera(GameStates state)
         {
             bool found = TryFindCameraState(state, out var matchedState);
@@ -53,10 +105,10 @@ namespace Runtime.Managers
             float startFOV = targetCamera.fieldOfView;
             float startOrthoSize = targetCamera.orthographicSize;
             
-            while (elapsedTime < transitionDuration)
+            while (elapsedTime < _transitionDuration)
             {
                 elapsedTime += Time.deltaTime;
-                float t = Mathf.SmoothStep(0, 1, elapsedTime / transitionDuration);
+                float t = Mathf.SmoothStep(0, 1, elapsedTime / _transitionDuration);
                 
                 targetCamera.transform.position = Vector3.Lerp(startPosition, targetState.Position, t);
                 targetCamera.transform.rotation = Quaternion.Slerp(startRotation, targetState.Rotation, t);

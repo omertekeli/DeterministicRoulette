@@ -1,7 +1,5 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Runtime.Data.UnityObjects;
 using Runtime.Data.ValueObjects;
 using Runtime.Enums;
 using Runtime.Handlers;
@@ -9,6 +7,7 @@ using Runtime.Keys;
 using Runtime.Signals;
 using Runtime.Utilies;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Runtime.Managers
 { 
@@ -16,8 +15,16 @@ namespace Runtime.Managers
     {
         #region Self Variables
 
-        #region Private Variables
+        #region Serialized Field Variables
 
+        [SerializeField] private float waitSpinResult = 2f;
+
+        #endregion
+        
+        #region Private Variables
+        
+        private int _winningNumber;
+        private bool _isOnTest;
         private int _betAmount;
         private int _chipAmount;
         private int _turnTotalBetAmount;
@@ -35,6 +42,7 @@ namespace Runtime.Managers
             LoadBetPayoutData();
             _betAmount = 0;
             _turnTotalBetAmount = 0;
+            _isOnTest = false;
         }
 
         private void Start()
@@ -49,37 +57,65 @@ namespace Runtime.Managers
         private void SubscribeEvents()
         {
             CoreGameSignals.Instance.onPlaceBet += OnPlaceBet;
-            CoreGameSignals.Instance.onSpinResult += OnSpinResult;
+            CoreGameSignals.Instance.onBallStopped += OnBallStopped;
+            UISignals.Instance.onPrepareSpin += OnPrepareSpin;
             UISignals.Instance.onChooseChip += OnChooseChip;
             UISignals.Instance.onClearBets += OnClearBets;
+            UISignals.Instance.onToggleTest += OnToggleTest;
         }
         
         private void UnSubscribeEvents()
         {
             CoreGameSignals.Instance.onPlaceBet -= OnPlaceBet;
+            CoreGameSignals.Instance.onBallStopped -= OnBallStopped;
+            UISignals.Instance.onPrepareSpin -= OnPrepareSpin;
             UISignals.Instance.onChooseChip -= OnChooseChip;
+            UISignals.Instance.onClearBets -= OnClearBets;
+            UISignals.Instance.onToggleTest += OnToggleTest;
         }
+
         private void LoadBetPayoutData() => _betPayoutData = Resources.Load<CD_BetPayout>("Data/CD_BetPayout").ToDictionary();
         
-        private void OnSpinResult(int winningNumber)
-        {   
+        private void OnToggleTest(bool arg0)
+        {
+            _isOnTest = arg0;
+        }
+        
+        private void OnPrepareSpin()
+        {
+            _winningNumber = _isOnTest ? Random.Range(0, 37) : BetEvaluator.GetWinningNumber(_playerBets, _betData);
+            CoreGameSignals.Instance.onSpin?.Invoke(_winningNumber);
+        }
+
+        private void OnBallStopped()
+        {
+            CoreGameSignals.Instance.onSpinResult?.Invoke(_winningNumber);
+            StartCoroutine(EvaluateBets());
+        }
+
+        private IEnumerator EvaluateBets()
+        {
             var betEvaluationContext = new BetEvaluationContext(
-                winningNumber,
+                _winningNumber,
                 _playerBets,
                 _betData,
                 _betPayoutData
-                );
+            );
             var earnedChipAmount = BetEvaluator.EvaluateBets(betEvaluationContext);
             var isWon = earnedChipAmount > 0 ? true : false;
             var profit = earnedChipAmount - _turnTotalBetAmount;
             Reset(earnedChipAmount);
+            
+            yield return new WaitForSeconds(waitSpinResult);
+            
             CoreGameSignals.Instance.onTurnResult?.Invoke(new TurnResultParams()
             {
                 IsWon = isWon,
+                EarnedChipAmount = earnedChipAmount,
                 Profit = profit,
             });
         }
-        
+
         private void OnPlaceBet(BetParams betParams)
         {
             if (_betAmount < 1) return;
@@ -92,6 +128,11 @@ namespace Runtime.Managers
         private void OnChooseChip(ChipParams chipParams)
         {
             _betAmount = chipParams.Amount;
+        }
+        
+        private void OnClearBets()
+        {
+            Reset(_turnTotalBetAmount);
         }
         private void AddBet(BetParams betParams, int betAmount)
         {
@@ -115,9 +156,5 @@ namespace Runtime.Managers
         }
         private void UpdateChipBalance(int amount) =>  _chipAmount += amount;
         private void ResetBets() => _playerBets.Clear();
-        private void OnClearBets()
-        {
-            Reset(_turnTotalBetAmount);
-        }
     }
 }

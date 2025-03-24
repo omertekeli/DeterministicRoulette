@@ -9,6 +9,6 @@ namespace Runtime.Keys
     {
         public BetTypes BetType;
         public string BetName;
-        public float2 Position;
+        public Transform ColliderTransform;
     }
 }

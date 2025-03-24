@@ -22,13 +22,12 @@ namespace Runtime.Controllers
 
         private void OnMouseDown()
         {   
-            var position = transform.position;
             Debug.Log("Click on " + betType);
             CoreGameSignals.Instance.onPlaceBet?.Invoke(new BetParams()
                 {
                     BetType = betType,
                     BetName = betName,
-                    Position = new float2(position.x, position.z)
+                    ColliderTransform = transform,
                 }
             );
         }

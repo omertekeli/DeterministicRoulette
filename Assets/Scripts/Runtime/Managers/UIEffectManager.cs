@@ -16,9 +16,45 @@ namespace Runtime.Managers
             StartCoroutine(MoveAnimation(target, targetPos, duration));
         }
         
+        public void MoveAndBack(Transform target, Vector3 targetPos, float duration)
+        {
+            StartCoroutine(MoveAndBackAnimation(target, targetPos, duration));
+        }
+        
         public void ScaleUpDownUI(Transform target, Vector3 targetScale, float duration)
         {
             StartCoroutine(ScaleUpDownAnimation(target, targetScale, duration));
+        }
+        
+        private IEnumerator MoveAndBackAnimation(Transform target, Vector3 targetPos, float duration)
+        {
+            Vector3 startPos = target.position;
+            float elapsedTime = 0;
+
+            while (elapsedTime < duration)
+            {
+                float t = elapsedTime / duration;
+                t = UIEaseUtility.EaseInOut(t); 
+                target.position = Vector3.Lerp(startPos, targetPos, t);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            target.position = targetPos;
+            
+            yield return new WaitForSeconds(1f);
+
+            elapsedTime = 0;
+            while (elapsedTime < duration)
+            {
+                float t = elapsedTime / duration;
+                t = UIEaseUtility.EaseInOut(t); 
+                target.position = Vector3.Lerp(targetPos, startPos, t);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            
+            target.position = startPos;
         }
 
         private IEnumerator ScaleUpDownAnimation(Transform target, Vector3 targetScale, float duration)

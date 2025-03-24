@@ -30,6 +30,8 @@ namespace Runtime.Controllers.Wheel
         {
             if (_slots.TryGetValue(slotNumber, out var slotObject))
             {
+                TurnOffTriggers();
+                slotObject.GetComponent<Collider>().isTrigger = true;
                 return slotObject;
             }
             else
@@ -38,7 +40,15 @@ namespace Runtime.Controllers.Wheel
                 return null;
             }
         }
-        
+
+        private void TurnOffTriggers()
+        {
+            foreach (var slot in slotObjects)
+            {
+                slot.GetComponent<Collider>().isTrigger = false;
+            }
+        }
+
         private void SetDictionary()
         {
             foreach (var slot in slotObjects)

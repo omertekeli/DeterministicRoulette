@@ -1,33 +1,43 @@
 ﻿using System;
 using System.Collections;
 using System.Threading;
+using Runtime.Signals;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace Runtime.Controllers.Ball
 {
+    /// <summary>
+    /// It manages the ball movement. First launch the ball and then spin it.
+    /// Pull area is controlled with a dot product.
+    /// After decreasing the speed of the ball, it will be able to pull if slot is near.
+    /// </summary>
+
     public class BallMovementController : MonoBehaviour
     {
         #region Self Variables
         
         #region Serialized Field Variables
         
-        [SerializeField] private Transform targetSlot;
         [SerializeField] private Transform rouletteWheel;
-        [SerializeField] private float initialSpeed  = 500f;
-        [SerializeField] private float slowDownRate  = 0.99f;
-        [SerializeField] private float stopThreshold = 0.05f;
+        [SerializeField] private float initialBallSpeed  = 500f;
+        [SerializeField] private float ballSpeedSlowDownRate  = 0.5f;
+        [SerializeField] private float ballStopThreshold = 0.05f;
         [SerializeField] private float ballForwardForceMultiplier = 2f;
-        [SerializeField] private float pullAreaDot = 0.9f;
-        [SerializeField] private float minBallSpeedToPull = 30f;
-        [SerializeField] private float attractionForce = 10f;
+        [SerializeField] private float pullAreaDot = 0.85f;
+        [SerializeField] private float minBallSpeedToPull = 150f; //Must be greater than wheel rotation speed
+        [SerializeField] private float attractionForce = 20f;
         
         #endregion
 
         #region Private Variables
 
+        private Vector3 _ballLaunchPosition;
+        private Transform _targetSlot;
         private Rigidbody _rigidbody;
         private bool _isSpinning;
         private bool _isUsingPhysics;
+        private bool _isOnSlot;
         
         #endregion
 
@@ -35,25 +45,36 @@ namespace Runtime.Controllers.Ball
         
         void Start()
         {
+            SetVariableValues();
+            SetRigidbodyProperties();
+        }
+
+        private void SetVariableValues()
+        {
+            _ballLaunchPosition = transform.position;
             _rigidbody = GetComponent<Rigidbody>();
+            _isSpinning = false;
+            _isUsingPhysics = false;
+            _isOnSlot = false;
+        }
+
+        private void SetRigidbodyProperties()
+        {
             _rigidbody.useGravity = false;
             _rigidbody.drag = 0.1f;
             _rigidbody.angularDrag = 0.1f;
-            Spin();
         }
-        
+
         void Update()
         {
             if (!_isSpinning) return;
             if (_isUsingPhysics) return;
-            // Rulet etrafında döndür
-            transform.RotateAround(rouletteWheel.position, Vector3.up, initialSpeed * Time.deltaTime);
-            // Hızı yavaşlat
-            if (initialSpeed > minBallSpeedToPull)
+            transform.RotateAround(rouletteWheel.position, Vector3.up, initialBallSpeed * Time.deltaTime);
+            if (initialBallSpeed > minBallSpeedToPull)
             {
-                initialSpeed -= slowDownRate;
+                initialBallSpeed -= ballSpeedSlowDownRate;
             }
-            if (initialSpeed > minBallSpeedToPull) return;
+            if (initialBallSpeed > minBallSpeedToPull) return;
             if (!IsSlotNear()) return;
             EnablePhysicsMode();
         }
@@ -63,11 +84,19 @@ namespace Runtime.Controllers.Ball
             if (!_isSpinning) return;
             if (!_isUsingPhysics) return;
             ApplyAttractionForce();
-            if (_rigidbody.velocity.magnitude < stopThreshold)
+            if (_rigidbody.velocity.magnitude < ballStopThreshold && _isOnSlot)
             {
-                Debug.Log("Ball stopped spinning.");
-                //_isSpinning = false;
+                _isSpinning = false;
             }
+        }
+        
+        internal void PrepareSpin()
+        {
+            initialBallSpeed = 500f;
+            _isUsingPhysics = false;
+            _isOnSlot = false;
+            transform.SetParent(null);
+            transform.position = _ballLaunchPosition;
         }
         
         internal void Spin()
@@ -77,24 +106,21 @@ namespace Runtime.Controllers.Ball
 
         private void ApplyAttractionForce()
         {
-            Debug.Log("Attract");
-            Vector3 forceDirection = (targetSlot.position - transform.position).normalized;
+            Vector3 forceDirection = (_targetSlot.position - transform.position).normalized;
             _rigidbody.AddForce(forceDirection * attractionForce, ForceMode.Acceleration);
         }
 
         private bool IsSlotNear()
         {
-            Vector3 toSlot = (targetSlot.position - rouletteWheel.position).normalized;
+            Vector3 toSlot = (_targetSlot.position - rouletteWheel.position).normalized;
             Vector3 toBall = (transform.position - rouletteWheel.position).normalized;
             return Vector3.Dot(toSlot, toBall) > pullAreaDot;
         }
 
         private void EnablePhysicsMode()
         {
-            Debug.Log("Physics mode enabled.");
             _isUsingPhysics = true;
             _rigidbody.useGravity = true;
-            // Mevcut hareket yönünü koruyarak kuvvet uygula
             Vector3 forwardForce = _rigidbody.velocity.normalized * ballForwardForceMultiplier;
             _rigidbody.AddForce(forwardForce, ForceMode.Impulse);
         }
@@ -103,26 +129,16 @@ namespace Runtime.Controllers.Ball
         {
             if (!_isSpinning) return;
             if (!other.CompareTag("SlotMagnet")) return;
-            Debug.Log("on Trigger");
+            StopBall();
+        }
+
+        private void StopBall()
+        {
             _rigidbody.drag = 5f;
             _rigidbody.angularDrag = 5f;
-            //attractionForce *= 2;
-        }
-        
-        private void GetRadiusOfObject()
-        {
-            Transform childTransform = gameObject.transform.Find("Mesh");
-            if (childTransform != null)
-            {
-                Bounds bounds = childTransform.GetComponent<MeshRenderer>().bounds;
-                float radius = bounds.extents.magnitude;  // En büyük ekseni almak için
-                Debug.Log("Yarıçap: " + radius + " metre");
-                Debug.Log("Child Nesnesindeki MeshRenderer bulundu.");
-            }
-            else
-            {
-                Debug.Log("Belirtilen isimde bir child bulunamadı.");
-            }
+            _isOnSlot = true;
+            transform.SetParent(_targetSlot);
+            CoreGameSignals.Instance.onBallStopped?.Invoke();
         }
     }
 }

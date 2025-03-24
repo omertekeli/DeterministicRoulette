@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Runtime.Data.ValueObjects;
+using Runtime.Keys;
 using UnityEngine;
 
 namespace Runtime.Utilies
@@ -21,6 +23,17 @@ namespace Runtime.Utilies
             }
             Debug.Log("Total Profit: " + profit);
             return profit;
+        }
+
+        public static int GetWinningNumber(Dictionary<string, BetEntry> playerBets, Dictionary<string, int[]> betData)
+        {
+            foreach (var bet in playerBets)
+            {
+                if (!betData.TryGetValue(bet.Key, out var numbers))
+                    continue; 
+                return numbers[Random.Range(0, numbers.Length)];
+            }
+            return Random.Range(0, 37);
         }
     }
 }

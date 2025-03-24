@@ -4,6 +4,7 @@
     {
         Start,
         Bet,
-        Result
+        SpinResult,
+        TurnResult,
     }
 }
